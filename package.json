@@ -1,6 +1,6 @@
 {
   "name": "sizmo",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Unofficial read-only GoHighLevel CLI — read your CRM (leads, bookings, pipeline, A/R, payments) from the terminal. Not affiliated with HighLevel.",
   "type": "module",
   "bin": {

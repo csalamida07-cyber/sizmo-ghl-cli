@@ -4,7 +4,20 @@ A profile stores a PIT (Private Integration Token) and Location ID under a name.
 
 ## Step 1 — get your PIT
 
-In GoHighLevel: Settings → Integrations → Private Integrations → Create. Grant read-only scopes. Copy the token (starts with `pit-`).
+In GoHighLevel: Settings → Integrations → Private Integrations → Create. Copy the token (starts with `pit-`).
+
+Grant the following scopes when creating the integration (minimum set for a full `brief`):
+
+```
+contacts.readonly
+conversations.readonly
+opportunities.readonly
+calendars.readonly
+invoices.readonly
+payments/transactions.readonly
+```
+
+Grant all six for the complete `brief`. Granting fewer is fine — any missing scope shows as ⚠ in the affected metric rather than hard-failing. Run `sizmo auth check` after setup to see exactly which lanes are readable and which scopes are still needed.
 
 ## Step 2 — find your Location ID
 

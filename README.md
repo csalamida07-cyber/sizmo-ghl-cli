@@ -44,6 +44,17 @@ echo "pit-yourtoken..." | sizmo config set --profile myclient --loc YOUR_LOCATIO
 
 PIT = Private Integration Token. Find it under GoHighLevel Settings > Integrations > Private Integrations. Never pass it as a command-line argument — always pipe it via stdin.
 
+When creating the Private Integration, grant these scopes for the full `brief`:
+
+```
+contacts.readonly · conversations.readonly · opportunities.readonly
+calendars.readonly · invoices.readonly · payments/transactions.readonly
+```
+
+Granting fewer is fine — missing scopes show as ⚠ in affected metrics rather than failing the whole command. Run `sizmo auth check` after setup to see a per-lane scope report.
+
+**Auth: PIT vs MCP** — `sizmo` uses a Private Integration Token (PIT), not the GoHighLevel MCP server. See [`docs/how-to/auth-pit-vs-mcp.md`](docs/how-to/auth-pit-vs-mcp.md) for the comparison and when you'd want each.
+
 Verify auth:
 
 ```sh
