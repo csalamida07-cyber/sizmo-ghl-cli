@@ -20,7 +20,7 @@ import { EXIT } from '../../lib/errors.mjs';
 
 const CONTACT_ID = 'cid-e2e-001';
 const TAG        = 'VIP';
-const PIT        = 'pit-E2EWRITETEST001';
+const PIT        = 'pit-e2e01';
 const LOC        = 'LOC_E2E_000';
 
 // ── helpers (same pattern as auth-check.test.mjs) ────────────────────────────
