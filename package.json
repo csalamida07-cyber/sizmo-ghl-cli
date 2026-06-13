@@ -10,8 +10,8 @@
     "node": ">=20"
   },
   "scripts": {
-    "test": "node --test",
-    "prepublishOnly": "node --test"
+    "test": "node --test --test-concurrency=1",
+    "prepublishOnly": "node --test --test-concurrency=1"
   },
   "author": "Sizmo / CJ Salamida",
   "license": "MIT",
