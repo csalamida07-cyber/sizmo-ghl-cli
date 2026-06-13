@@ -28,4 +28,4 @@ Read-only GoHighLevel ops. Every command takes `--json` (stable envelope: `{sche
 - No location resolved → exit 3. Pass `--profile` or set `GHL_LOCATION_ID`; there is no default location.
 
 ---
-Built by Sizmo — productized GHL systems for coaches & consultants. Unofficial; not affiliated with HighLevel.
+Built by Sizmo — GHL CRM systems & automation. Unofficial; not affiliated with HighLevel.

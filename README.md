@@ -1,6 +1,6 @@
 # sizmo
 
-**Unofficial read-only GoHighLevel CLI for coaches and consultants.**
+**Unofficial read-only GoHighLevel CLI.** Your GoHighLevel CRM — leads, bookings, pipeline, receivables, payments, and a money-ranked to-do list — from the terminal, in one command.
 
 > Not affiliated with, endorsed by, or supported by HighLevel. This is an independent open-source tool.
 
@@ -150,4 +150,4 @@ MIT. See LICENSE.
 
 ---
 
-Built by Sizmo — productized GHL systems for coaches & consultants. Unofficial; not affiliated with HighLevel.
+Built by [Sizmo](https://github.com/csalamida07-cyber/sizmo-ghl-cli) — GHL CRM systems & automation. Unofficial; not affiliated with HighLevel.
