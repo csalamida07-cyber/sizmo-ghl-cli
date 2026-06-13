@@ -78,6 +78,8 @@ Command list generated from `sizmo schema` (authoritative — pulled directly fr
 | `sizmo booked-not-paid` | Sessions with no invoice or payment — the money leak | `--days N` (default 30), `--top N` (default 15) |
 | `sizmo focus` | One ranked to-do queue by money at stake | `--top N` (default 15), `--stuck-days N` (default 7) |
 | `sizmo segment` | Find contacts by criteria — tag, phone, age, etc. | `--tag X`, `--without-tag X`, `--no-tags`, `--created-days N`, `--has-phone`, `--no-phone`, `--top N` (default 20) |
+| `sizmo crm` | Query the local CRM model — counts, lists, staleness | `--all` (show all items) |
+| `sizmo sync` | Refresh the local CRM model (pipelines, calendars, tags, fields, users, location) | `[entity]` (sync one) |
 
 ### Utility commands
 
@@ -118,6 +120,42 @@ Every command supports `--json`. The envelope shape is stable:
 ```
 
 `degraded: true` means at least one data source was blocked (scope or auth). Read `warnings`. A blocked source is not zero — treat it as unknown.
+
+## Your CRM model
+
+`sizmo` caches the slow-changing structure of your CRM — pipelines + stages, calendars, tags, custom fields, users, and location — in a local file (`~/.config/sizmo/model/<locationId>.json`). Recipes read from this cache instead of re-fetching structure on every run.
+
+**What it stores:** pipeline/stage names + IDs, calendar list, tag list, custom fields, user roster, and location info (timezone, currency, country). Structure only — no contacts, no conversations, no payments.
+
+**Sync once, read fast.** The model is synced automatically on first use. After that, recipes use the cached copy. Run `sizmo sync` after you change your pipeline stages or add calendars:
+
+```sh
+sizmo sync                # full refresh (all 6 entities)
+sizmo sync tags           # refresh one entity only
+```
+
+**Age is always shown.** `sizmo crm` shows how old each entity is. Stale entries (past TTL: 24h for pipelines/calendars/users/location; 12h for tags/fields) show a warning. The CLI never silently serves stale structure as current.
+
+**Model never auto-syncs when stale.** It serves the cached data with a loud age banner. This avoids surprise network calls mid-recipe. Use `sizmo sync` or `--fresh` to force a refresh.
+
+```sh
+sizmo crm                 # overview: counts + age per entity
+sizmo crm pipelines       # list pipelines + stages
+sizmo crm calendars       # list calendars
+sizmo crm tags [--all]    # list tags (truncated at 20 by default)
+sizmo crm fields          # list custom fields
+sizmo crm users           # list users
+sizmo crm location        # timezone / currency / country
+sizmo crm pipelines --json  # machine output with _meta.source/syncedAt/ageMs/stale
+```
+
+The JSON `_meta` block in every `crm` response lets agents branch on staleness without parsing prose:
+
+```json
+"_meta": { "source": "cache", "syncedAt": 1718000000000, "ageMs": 3600000, "stale": false, "offline": false }
+```
+
+**Scope requirements** for a full sync: `opportunities.readonly`, `calendars.readonly`, `locations/tags.readonly`, `locations/customFields.readonly`, `users.readonly`, `locations.readonly`. A 401/403 on one entity marks it blocked; the rest still store. `sizmo crm` shows `✖ needs <scope>` for blocked entities.
 
 ## Read-only + safety promise
 
