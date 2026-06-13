@@ -1,6 +1,7 @@
 // commands/pipeline.mjs — Pipeline health: value by stage + stuck sweep.
 // Trust-fix #1: LOC from ctx.cfg.loc.
 // Trust-fix #2: opps paginate to completion.
+// v0.5.0: stage/pipeline names sourced from ctx CRM model (no per-run structure re-fetch).
 // READ-ONLY.
 import { paginate } from '../lib/paginate.mjs';
 
@@ -31,17 +32,42 @@ export async function collect(args, ctx) {
     return d >= 1 ? d + 'd' : Math.max(1, Math.floor((NOW - t) / 3600000)) + 'h';
   };
 
-  // pipelines → stage id→name map
-  const p = await ctx.http.get('/opportunities/pipelines', { query: { locationId: LOC } });
-  if (!p.ok) {
-    ctx.out.warn(`can't see pipelines → HTTP ${p.code}`, { degraded: true });
-    return { location: LOC, totalValue: 0, openCount: 0, pipelines: [], stuck: [] };
-  }
-  const pipelines = p.j.pipelines || [];
+  // Build stage/pipeline maps from the CRM model (no per-run structure re-fetch).
+  // Falls back to a live fetch if the model is unavailable.
   const stageName = {}, pipeName = {}, stageOrder = {};
-  for (const pl of pipelines) {
-    pipeName[pl.id] = pl.name;
-    (pl.stages || []).forEach((s, i) => { stageName[s.id] = s.name; stageOrder[s.id] = i; });
+
+  // Try model first (injected on ctx for tests, or via ensureModel for live)
+  let modelPipelines = null;
+  if (ctx._modelDir !== undefined) {
+    // Test path: model injected via ctx._modelPipelines or via the model blob in ctx
+    modelPipelines = ctx._modelPipelines ?? null;
+  }
+  if (!modelPipelines && ctx.ensureModel) {
+    try {
+      const model = await ctx.ensureModel();
+      if (model?.entities?.pipelines && !model.entities.pipelines.blocked) {
+        modelPipelines = model.entities.pipelines.items ?? [];
+      }
+    } catch { /* fall through to live fetch */ }
+  }
+
+  if (modelPipelines !== null) {
+    for (const pl of modelPipelines) {
+      pipeName[pl.id] = pl.name;
+      (pl.stages || []).forEach((s, i) => { stageName[s.id] = s.name; stageOrder[s.id] = i; });
+    }
+  } else {
+    // Fallback: live fetch (model missing/blocked)
+    const p = await ctx.http.get('/opportunities/pipelines', { query: { locationId: LOC } });
+    if (!p.ok) {
+      ctx.out.warn(`can't see pipelines → HTTP ${p.code}`, { degraded: true });
+      return { location: LOC, totalValue: 0, openCount: 0, pipelines: [], stuck: [] };
+    }
+    const pipelines = p.j.pipelines || [];
+    for (const pl of pipelines) {
+      pipeName[pl.id] = pl.name;
+      (pl.stages || []).forEach((s, i) => { stageName[s.id] = s.name; stageOrder[s.id] = i; });
+    }
   }
 
   // all open opps paginated to completion (trust-fix #2)

@@ -2,6 +2,7 @@
 // Trust-fix #1: LOC from ctx.cfg.loc.
 // Trust-fix #2: transactions + subscriptions paginate to completion.
 // Trust-fix #3: collected-by-source per currency (never cross-sums).
+// v0.5.0: default currency from CRM model location (not hardcoded PHP).
 // READ-ONLY. NEVER charges, refunds, or collects.
 import { paginate } from '../lib/paginate.mjs';
 
@@ -33,6 +34,19 @@ export async function collect(args, ctx) {
     return t >= START && t <= NOW;
   };
 
+  // Location currency from CRM model (fallback PHP if model missing/blocked)
+  let locationCurrency = 'PHP';
+  if (ctx.ensureModel) {
+    try {
+      const model = await ctx.ensureModel();
+      const locCur = model?.entities?.location?.item?.business?.currency
+        || model?.entities?.location?.item?.currency;
+      if (locCur) locationCurrency = locCur.toUpperCase();
+    } catch { /* use default */ }
+  } else if (ctx.cfg.currency) {
+    locationCurrency = ctx.cfg.currency;
+  }
+
   // transactions paginated to completion (trust-fix #2)
   const txns = [];
   let txnErr = null;
@@ -61,7 +75,7 @@ export async function collect(args, ctx) {
   if (txnErr && txns.length === 0) {
     ctx.out.warn(`can't see transactions → HTTP ${txnErr}`, { degraded: true });
     return {
-      location: LOC, days: DAYS, scanned: 0, inWindow: 0, collected: 0, currency: 'PHP',
+      location: LOC, days: DAYS, scanned: 0, inWindow: 0, collected: 0, currency: locationCurrency,
       bySource: {}, byStatus: {}, flags: { refunds: 0, failed: 0, orphans: 0 }, subscriptions: null,
     };
   }
@@ -78,7 +92,7 @@ export async function collect(args, ctx) {
     const st = (t.status || t.paymentStatus || '').toLowerCase();
     byStatus[st] = (byStatus[st] || 0) + 1;
     const amt = Number(t.amount) || 0;
-    const cur = (t.currency || 'PHP').toUpperCase();
+    const cur = (t.currency || locationCurrency).toUpperCase();
     if (SUCCESS.has(st)) {
       const s = srcOf(t);
       byCur[cur] ??= { bySource: {}, total: 0 };
@@ -97,7 +111,7 @@ export async function collect(args, ctx) {
   // flatten for output — single currency → backward-compat flat shape; multi → byCurrency map
   const currencies = Object.keys(byCur);
   const isSingle = currencies.length <= 1;
-  const currency = isSingle ? (currencies[0] || 'PHP') : (currencies[0] || 'PHP');
+  const currency = isSingle ? (currencies[0] || locationCurrency) : (currencies[0] || locationCurrency);
   const collected = isSingle ? (byCur[currency]?.total ?? 0) : null;
   const byCurrency = isSingle ? null : Object.fromEntries(currencies.map(c => [c, byCur[c].total]));
   // bySource: when single currency keep flat {src:{c,v}} for backward compat; multi-currency not surfaced at top level
@@ -136,7 +150,7 @@ export async function collect(args, ctx) {
     // MRR per-currency — same treatment as transactions (never cross-sum currencies)
     const mrrByCur = {};
     for (const x of active) {
-      const cur = (x.currency || 'PHP').toUpperCase();
+      const cur = (x.currency || locationCurrency).toUpperCase();
       mrrByCur[cur] = (mrrByCur[cur] || 0) + (Number(x.amount) || 0);
     }
     const mrrCurrencies = Object.keys(mrrByCur);

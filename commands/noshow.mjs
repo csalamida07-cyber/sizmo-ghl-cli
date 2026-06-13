@@ -1,5 +1,6 @@
 // commands/noshow.mjs — No-show recovery: surfaces who no-showed to re-book.
 // Trust-fix #1: LOC from ctx.cfg.loc (no baked default).
+// v0.5.0: calendar list from CRM model (no per-run /calendars/ re-fetch); events still live.
 // READ-ONLY. Never messages, never books.
 import { mapLimit } from '../lib/pool.mjs';
 export const meta = {
@@ -24,12 +25,24 @@ export async function collect(args, ctx) {
   const NOW = ctx.now;
   const START = NOW - DAYS * 24 * 60 * 60 * 1000;
 
-  const cr = await ctx.http.get('/calendars/', { query: { locationId: LOC }, version: '2021-04-15' });
-  if (!cr.ok) {
-    ctx.out.warn(`can't see calendars → HTTP ${cr.code}`, { degraded: true });
-    return { location: LOC, calendars: 0, noshows: 0, shown: 0, list: [] };
+  // Get calendar list from the CRM model if available; fall back to live fetch.
+  let cals = null;
+  if (ctx.ensureModel) {
+    try {
+      const model = await ctx.ensureModel();
+      if (model?.entities?.calendars && !model.entities.calendars.blocked) {
+        cals = model.entities.calendars.items ?? [];
+      }
+    } catch { /* fall through to live fetch */ }
   }
-  const cals = cr.j.calendars || [];
+  if (cals === null) {
+    const cr = await ctx.http.get('/calendars/', { query: { locationId: LOC }, version: '2021-04-15' });
+    if (!cr.ok) {
+      ctx.out.warn(`can't see calendars → HTTP ${cr.code}`, { degraded: true });
+      return { location: LOC, calendars: 0, noshows: 0, shown: 0, list: [] };
+    }
+    cals = cr.j.calendars || [];
+  }
   const noshows = [];
   let skippedCalendars = 0;
   // Parallel fan-out, capped at 5 concurrent (GHL rate-limit-safe: 100 req/10s; 5 concurrent is well under).

@@ -2,6 +2,7 @@
 // Trust-fix #1: LOC from ctx.cfg.loc (no baked default).
 // Trust-fix #2: leads() and revenue() paginate to completion.
 // Trust-fix #3: revenue tracks per-currency (never cross-sums).
+// v0.5.0: calendar list from CRM model; location currency from model.
 import { paginate } from '../lib/paginate.mjs';
 import { mapLimit } from '../lib/pool.mjs';
 
@@ -30,6 +31,19 @@ export async function collect(args, ctx) {
     const t = typeof v === 'number' ? (v < 1e12 ? v * 1000 : v) : Date.parse(v);
     return Number.isFinite(t) && t >= START && t <= NOW;
   };
+
+  // Location currency from CRM model (fallback PHP if model missing/blocked)
+  let locationCurrency = 'PHP';
+  if (ctx.ensureModel) {
+    try {
+      const model = await ctx.ensureModel();
+      const locCur = model?.entities?.location?.item?.business?.currency
+        || model?.entities?.location?.item?.currency;
+      if (locCur) locationCurrency = locCur.toUpperCase();
+    } catch { /* use default */ }
+  } else if (ctx.cfg.currency) {
+    locationCurrency = ctx.cfg.currency;
+  }
 
   // ── LEADS: paginate contacts newest→older, stop past window ──
   async function leads() {
@@ -78,12 +92,24 @@ export async function collect(args, ctx) {
   // Full fix = date-window splitting; tracked as follow-up. Cheap mitigation: warn + degrade.
   const EVENTS_CAP = 100;
   async function bookings() {
-    const cr = await ctx.http.get('/calendars/', { query: { locationId: LOC }, version: '2021-04-15' });
-    if (!cr.ok) return [
-      metric('Bookings', null, { blocked: true, blocker: `calendars list HTTP ${cr.code}` }),
-      metric('Show rate', null, { blocked: true, blocker: 'no calendars' }),
-    ];
-    const cals = cr.j.calendars || [];
+    // Get calendar list from the CRM model if available; fall back to live fetch.
+    let cals = null;
+    if (ctx.ensureModel) {
+      try {
+        const model = await ctx.ensureModel();
+        if (model?.entities?.calendars && !model.entities.calendars.blocked) {
+          cals = model.entities.calendars.items ?? [];
+        }
+      } catch { /* fall through to live fetch */ }
+    }
+    if (cals === null) {
+      const cr = await ctx.http.get('/calendars/', { query: { locationId: LOC }, version: '2021-04-15' });
+      if (!cr.ok) return [
+        metric('Bookings', null, { blocked: true, blocker: `calendars list HTTP ${cr.code}` }),
+        metric('Show rate', null, { blocked: true, blocker: 'no calendars' }),
+      ];
+      cals = cr.j.calendars || [];
+    }
     let booked = 0, showed = 0, noshow = 0, calsHit = 0, skippedCalendars = 0;
     // Parallel fan-out, capped at 5 concurrent (GHL rate-limit-safe: 100 req/10s; 5 concurrent is well under).
     // ONLY the independent per-calendar fetches are parallelized — pagination pages stay sequential.
@@ -152,7 +178,7 @@ export async function collect(args, ctx) {
       const when = t.createdAt || t.created_at || t.dateAdded;
       const ok = (t.status || t.paymentStatus || '').toLowerCase();
       if (inWindow(when) && (ok === 'succeeded' || ok === 'success' || ok === 'paid' || ok === 'completed' || ok === 'captured')) {
-        const cur = (t.currency || 'PHP').toUpperCase();
+        const cur = (t.currency || locationCurrency).toUpperCase();
         byCur[cur] = byCur[cur] || { sum: 0, n: 0 };
         byCur[cur].sum += Number(t.amount) || 0;
         byCur[cur].n++;
@@ -163,7 +189,7 @@ export async function collect(args, ctx) {
     // If only one currency, match original format; multi-currency → list all
     const entries = Object.entries(byCur);
     if (entries.length === 0)
-      return metric('Collected', money(0, 'PHP'), { note: `0 payment(s) · ${totalScanned} txns scanned` });
+      return metric('Collected', money(0, locationCurrency), { note: `0 payment(s) · ${totalScanned} txns scanned` });
     if (entries.length === 1) {
       const [cur, { sum, n }] = entries[0];
       return metric('Collected', money(sum, cur), { note: `${n} payment(s) · ${totalScanned} txns scanned` });
@@ -195,7 +221,7 @@ export async function collect(args, ctx) {
       sum += Number(o.monetaryValue || o.monetary_value || 0) || 0;
       n++;
     }
-    return metric('Pipeline value', money(sum), { note: `${n} open deal(s)` });
+    return metric('Pipeline value', money(sum, locationCurrency), { note: `${n} open deal(s)` });
   }
 
   // ── REPLY RATE ──
