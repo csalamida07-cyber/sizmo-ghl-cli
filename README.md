@@ -182,6 +182,8 @@ Every command supports `--json`. The envelope shape is stable:
 
 **Router verbs differ.** `init`, `auth`, and `config` are setup verbs, not data commands — their `--json` output is a purpose-specific object (e.g. `auth check` → `{ lanes, usable }`, `init` → `{ profile, location, ok, doctor }`), not the `data`/`degraded`/`warnings` envelope above. The data commands (brief, snapshot, doctor, …) all use the envelope.
 
+Both contracts are frozen under semver — see [`API-STABILITY.md`](API-STABILITY.md) for exactly what you can depend on across `1.x` (exit codes, JSON shapes, `schemaVersion` policy, flag names) and what you can't (human output, stderr text, internal modules).
+
 ## Staying up to date
 
 `npx sizmo` always runs the latest published version. If you installed globally (`npm i -g sizmo`), the CLI checks npm **at most once a day** and prints a one-line nudge to stderr when a newer version exists:

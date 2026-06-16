@@ -39,6 +39,7 @@
     "INSTALL.md",
     "SECURITY.md",
     "CHANGELOG.md",
+    "API-STABILITY.md",
     "docs/"
   ],
   "publishConfig": {

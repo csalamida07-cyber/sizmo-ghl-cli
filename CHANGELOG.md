@@ -18,6 +18,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (confirm-gated operational writes exist since 0.6.0; money still never moves).
 - CI — GitHub Actions (`.github/workflows/ci.yml`): runs `node --test` on Node 20 + 22 on every
   push/PR, plus a generic gitleaks secret scan. CI / npm / zero-deps badges in the README.
+- `API-STABILITY.md` — the frozen public contract for 1.x: exit codes, the two JSON contracts
+  (data-command envelope + per-verb router shapes), `schemaVersion` policy, flag/command stability,
+  and an explicit list of what is NOT covered (human output, stderr, internal modules).
 
 ## [0.9.0] — 2026-06-15
 
