@@ -11,7 +11,7 @@
   },
   "scripts": {
     "test": "node --test --test-concurrency=1",
-    "prepublishOnly": "node --test --test-concurrency=1"
+    "prepublishOnly": "node scripts/prepublish-gate.mjs && node --test --test-concurrency=1"
   },
   "author": "Sizmo / CJ Salamida",
   "license": "MIT",

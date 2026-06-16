@@ -4,10 +4,10 @@ Thanks for looking at sizmo. A few rules before you open a PR.
 
 ## Ground rules
 
-- **Read-only only.** This tool never writes to GoHighLevel. Any PR that adds write capability — creating contacts, sending messages, issuing invoices, charging payments — will be closed.
+- **Money never moves.** The tool performs confirm-gated *operational* writes (tag, note, opportunity, appointment, message) — every one requires `--confirm`. It never charges, collects, refunds, or issues an invoice; payments and invoices are read-only. Any PR that adds a money-moving path will be closed.
 - **No new scopes.** Do not add GoHighLevel API scopes beyond what is already used.
 - **No secrets in code.** No PITs, no location IDs, no personal paths. The test suite uses synthetic IDs (e.g. `LOC_TEST_000`, `pit-TEST...`).
-- **Tests must pass.** Run `node --test` before opening a PR. All 124 tests must stay green. Add tests for new behavior.
+- **Tests must pass.** Run `node --test` before opening a PR — the full suite must stay green. Add tests for new behavior.
 
 ## Development setup
 
@@ -47,6 +47,28 @@ gitleaks detect --source .
 ```
 
 Any PR that adds a credential, token, real location id, or `.env` file will be rejected. Maintainers run an additional review before each release.
+
+## Releasing (maintainers)
+
+**A release is never published from an uncommitted or untagged tree.** Versions 0.7.0–0.9.0 once
+shipped to npm while git was stuck at 0.6.0 — no commit, no tag, no traceable source. That can't
+happen again: `scripts/prepublish-gate.mjs` runs in `prepublishOnly` and **aborts `npm publish`**
+unless the working tree is clean and HEAD is tagged `vX.Y.Z` matching `package.json`. There is no
+bypass flag.
+
+The ritual, in order:
+
+```sh
+# 1. bump the version in package.json
+# 2. update CHANGELOG.md (move [Unreleased] → the new version)
+node --test                       # full suite green
+git add -A && git commit -m "..."  # commit everything (gate requires a clean tree)
+git tag -a vX.Y.Z -m "..."         # tag must match package.json (gate requires it at HEAD)
+npm publish                        # prepublish-gate + tests run automatically; aborts if not clean+tagged
+git push origin main --tags        # publish the history + tag
+```
+
+Maintainers also run the out-of-tree secret/moat scan before pushing public.
 
 ## Code style
 

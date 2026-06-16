@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `SECURITY.md` — security policy, threat model, and verifiable guarantees (zero-deps,
   PIT-never-in-argv, money-never-moves, no-telemetry), each with a self-audit recipe.
 - `CHANGELOG.md` — this file; release history backfilled from 0.4.0.
+- `scripts/prepublish-gate.mjs` — wired into `prepublishOnly`; **aborts `npm publish`** unless the
+  git tree is clean and HEAD is tagged `vX.Y.Z` matching `package.json`. Closes the loophole that
+  let 0.7.0–0.9.0 ship while git was stuck at 0.6.0. No bypass flag.
+- `CONTRIBUTING.md` — documented the release ritual; corrected the stale "never writes" claim
+  (confirm-gated operational writes exist since 0.6.0; money still never moves).
 
 ## [0.9.0] — 2026-06-15
 
