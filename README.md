@@ -10,6 +10,18 @@
 
 `sizmo` reads your GoHighLevel location — leads, bookings, pipeline, A/R, money leaks — from the terminal. Write operations (tag, note, opp, appointment, send) require explicit `--confirm`; without it the CLI prints the exact change and a rerun command, then exits 5. Nothing fires silently. Money stays out — no charges, collections, refunds, or invoice-issuing; payments and invoices are read-only.
 
+## Why sizmo
+
+One command answers the only two questions that matter on a Monday — **where is money leaking, and who needs me today** — and it never invents a number to do it. A blocked data source is reported as *unknown*, never as zero.
+
+Why not the tools you already have:
+
+- **vs the GoHighLevel web UI** — the UI makes you click through six screens to assemble what `sizmo brief` prints in one. And it has no "money leaks" view — overdue receivables and booked-but-never-billed sessions are the numbers it won't surface for you.
+- **vs the official GHL MCP server** — that's an OAuth-app install, multi-tenant, and read-leaning. `sizmo` is PIT-simple (paste one token, go), does confirm-gated *writes* too, and is **zero-dependency** — the whole tool is auditable in an afternoon (see [`SECURITY.md`](SECURITY.md)).
+- **vs Zapier / Make** — those *automate tasks* on a trigger. `sizmo` *answers questions* for a human at a keyboard (and for the agent that human points at it). No per-task pricing, no data routed through a third party — it runs on your machine against your PIT.
+
+It's also built to be piped: every command has a stable `--json` envelope ([`API-STABILITY.md`](API-STABILITY.md)), so a human reads the pretty output and their agent consumes the JSON underneath.
+
 ## Install
 
 Requires Node.js 22+ (current Active LTS).

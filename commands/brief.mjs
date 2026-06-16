@@ -279,15 +279,20 @@ function buildRenderModel(data, sources, ctx) {
   const { triage, noshow, pipeline: pipe, receivables: ar } = sources;
 
   // Footnotes: money sources that are blocked/unknown and therefore EXCLUDED from the headline.
+  // `blocked` tracks whether ANY money source couldn't be read — so the headline can say so
+  // instead of a falsely-calm "No leaks found" (the wrong/expired-PIT fake-green: every source
+  // 401s, the brief would otherwise headline "No leaks found · 0 need you today").
   const footnotes = [];
+  let blocked = false;
   const snap = data.snapshot;
-  if (ar?.__error) footnotes.push(`receivables blocked (${ar.__error}) — overdue $ not counted`);
-  if (snap?.__error) footnotes.push(`snapshot blocked (${snap.__error})`);
+  if (ar?.__error) { footnotes.push(`receivables blocked (${ar.__error}) — overdue $ not counted`); blocked = true; }
+  if (snap?.__error) { footnotes.push(`snapshot blocked (${snap.__error})`); blocked = true; }
   // A degraded source that returned an EMPTY list (e.g. a 403 the sub-collect swallowed into [])
   // means a money source may be silently excluded. Surface it — never let a blocked source
   // masquerade as "no leaks". (ctx.out.degraded is set by the sub-collect warn path.)
   if (ctx?.out?.degraded && !ar?.__error && !snap?.__error) {
-    footnotes.push('a data source was degraded — some money may be excluded (run `sizmo doctor`)');
+    footnotes.push('a data source was degraded — some money may be excluded');
+    blocked = true;
   }
   // value-unknown leak-class actions (invoices with no balance shown) — excluded from the
   // headline total honestly. (never-billed is not a brief lane — see shapeLanes note.)
@@ -297,6 +302,8 @@ function buildRenderModel(data, sources, ctx) {
   if (unknownLeaks > 0) footnotes.push(`${unknownLeaks} leak(s) with unknown value — not in the total`);
   // mixed currency caveat — raw-number sum across currencies is not meaningful
   if (leaks.currencies.length > 1) footnotes.push(`mixed currencies (${leaks.currencies.join(', ')}) — summed as raw numbers`);
+  // one consolidated pointer whenever any source was blocked (the headline only says "⚠ partial")
+  if (blocked) footnotes.push('run `sizmo doctor` to see what is blocked');
 
   const N = (data.actions || []).length;
 
@@ -314,9 +321,16 @@ function buildRenderModel(data, sources, ctx) {
   let headline;
   if (leaks.total > 0) {
     headline = `${fmtMoney(leaks.total, headlineCur)} found · ${N} need you today`;
+  } else if (blocked) {
+    // Zero known leaks BUT a source was blocked → NOT "all clear" (the wrong/expired-PIT
+    // fake-green). Honest about both: clean in what was readable, AND incomplete.
+    headline = `No leaks in readable data · ${N} need you today`;
   } else {
     headline = `No leaks found · ${N} need you today`;
   }
+  // Any blocked source → the picture is partial. Mark the headline so it never reads as complete.
+  // Kept short to fit the pretty card width; the blocked source + `sizmo doctor` are in the footnotes.
+  if (blocked) headline += ` · ⚠ partial`;
 
   // Money-leak line items (the itemized known leaks)
   const moneyLeakLines = leaks.items.map(a => {

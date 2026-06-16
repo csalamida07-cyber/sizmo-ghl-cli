@@ -136,8 +136,12 @@ test('brief headline: blocked receivables source → excluded from total + footn
   await run({ days: 7, format: 'pretty', 'no-memory': true }, ctx);
   ctx.out.flush();
   const out = getPrinted();
-  // No invoice money is known → headline must read honestly, NOT fabricate a number
-  assert.match(out, /No leaks found/, 'blocked source → no fabricated leak total');
+  // No invoice money is known AND a source was blocked → headline must NOT fake "No leaks found"
+  // (that implies a complete read). It must signal partial data + point to doctor in the footnotes.
+  assert.match(out, /No leaks in readable data/, 'blocked source → not a falsely-complete "No leaks found"');
+  assert.match(out, /⚠ partial/, 'headline marks the picture as partial');
+  assert.doesNotMatch(out, /No leaks found ·/, 'must NOT use the all-clear headline when blocked');
+  assert.match(out, /sizmo doctor/, 'footnote points to doctor');
   // and the degraded source must be footnoted (never silently green)
   assert.match(out, /degraded|blocked/i, 'degraded money source footnoted');
 });

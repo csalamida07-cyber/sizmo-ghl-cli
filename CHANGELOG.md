@@ -27,6 +27,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - **Node floor raised to `>=22`** (current Active LTS; Node 20 reached end-of-life). `engines` is
   advisory — a user on an older Node gets an npm warning, not a failure. CI matrix is now 22 + 24.
+- README now opens with a **"Why sizmo"** section (vs the GHL web UI / the official MCP server /
+  Zapier-style automation) — the reason-to-choose, not just a feature list.
+
+### Fixed
+- **brief no longer fakes "all clear" on a wrong/expired PIT.** When a data source is blocked, the
+  headline reads `No leaks in readable data · ⚠ partial` (not a falsely-complete "No leaks found")
+  and the footnotes point to `sizmo doctor`. Found via a 1.0 unhappy-path review.
 
 ## [0.9.0] — 2026-06-15
 
