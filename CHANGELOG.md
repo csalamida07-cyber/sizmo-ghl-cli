@@ -21,6 +21,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `API-STABILITY.md` — the frozen public contract for 1.x: exit codes, the two JSON contracts
   (data-command envelope + per-verb router shapes), `schemaVersion` policy, flag/command stability,
   and an explicit list of what is NOT covered (human output, stderr, internal modules).
+- `docs/maintainers/api-versions.md` — where the GHL API date-version pins live, the deprecation
+  watch, the bump procedure, and the Node-floor policy.
+
+### Changed
+- **Node floor raised to `>=22`** (current Active LTS; Node 20 reached end-of-life). `engines` is
+  advisory — a user on an older Node gets an npm warning, not a failure. CI matrix is now 22 + 24.
 
 ## [0.9.0] — 2026-06-15
 

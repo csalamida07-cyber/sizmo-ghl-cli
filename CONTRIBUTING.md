@@ -14,7 +14,7 @@ Thanks for looking at sizmo. A few rules before you open a PR.
 ```sh
 git clone <repo>
 cd sizmo-ghl-cli
-node --version   # must be 20+
+node --version   # must be 22+
 node --test      # run the test suite
 ```
 

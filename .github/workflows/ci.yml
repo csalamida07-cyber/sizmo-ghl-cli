@@ -18,7 +18,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: ['20', '22']   # 20 = the engines floor; 22 = current LTS
+        node: ['22', '24']   # 22 = the engines floor (Active LTS); 24 = current
     steps:
       - uses: actions/checkout@v4
       - name: Use Node ${{ matrix.node }}

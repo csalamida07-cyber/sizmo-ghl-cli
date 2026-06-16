@@ -12,7 +12,7 @@
 
 ## Install
 
-Requires Node.js 20+.
+Requires Node.js 22+ (current Active LTS).
 
 **Option A — npm (recommended):**
 
