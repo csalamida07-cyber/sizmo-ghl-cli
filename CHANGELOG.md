@@ -23,6 +23,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CHANGELOG: the 1.0.0 entry said CI runs on "Node 20 + 22" in one line and "22 + 24" in another;
   the real matrix is 22 + 24.
 
+### Documentation
+- Documented the already-shipped token-lean flags `--fields` (project list items to named keys, on
+  every list-bearing recipe) and `--concise` (leaner `brief` payload) in the README + API-STABILITY,
+  and froze them under `1.x`. No code change — these shipped earlier but were undocumented; they're
+  the lowest-token way for an agent to consume sizmo.
+
 ### Security
 - Completed the URL-encoding hardening started in 0.9.0: `encodeURIComponent` is now applied to
   every user-supplied id interpolated into a request path — `appointment cancel <apptId>`,

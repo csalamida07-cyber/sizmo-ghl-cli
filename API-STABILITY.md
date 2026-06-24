@@ -44,7 +44,9 @@ Every `--json` response carries `schemaVersion` (currently `1`).
 
 - `data` holds the command's payload. `degraded: true` + `warnings[]` mean a source was blocked
   (treat a blocked source as **unknown**, never zero).
-- `--fields a,b` projects list items to those keys. `cacheAgeMs` appears when served from cache.
+- `--fields a,b` projects list items to those keys (every list-bearing recipe). `--concise` returns
+  a leaner payload (currently `brief` only). Both are token-lean affordances for agents and are
+  stable within `1.x`. `cacheAgeMs` appears when served from cache.
 
 ### b) Router verbs → per-verb objects
 

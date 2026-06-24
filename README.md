@@ -169,10 +169,20 @@ sizmo api /path         # raw GET escape hatch (--paginate --max-pages N)
 ```
 --profile <name>     use a named credential profile
 --json               machine-readable output (stable JSON envelope)
+--fields a,b,c       (with --json) keep only these keys on each list item — trims the payload
+--concise            (with --json) leaner payload — currently trims `brief` only
 --fresh              bypass 60-second read cache — re-fetches live data
 --no-cache           alias for --fresh
 --no-update-check    skip the once-a-day "newer version available" check for this run
 ```
+
+**Token-lean for agents.** `--fields` and `--concise` exist so an LLM driving sizmo pays for only
+the data it needs. `sizmo receivables --json --fields name,due` returns just those two keys per row
+instead of the full record — often an ~80–90% smaller payload. `--fields` projects the list in
+`receivables`, `segment`, `triage`, `noshow`, `focus`, and `crm` (the list-bearing recipes);
+`--concise` currently trims `brief` only. Both are read-from-the-shelf, pay-per-call ergonomics:
+an agent that shells out to `sizmo … --json --fields …` carries one command, not a whole tool's
+schema.
 
 ## JSON envelope
 
