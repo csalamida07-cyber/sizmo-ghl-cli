@@ -6,7 +6,7 @@
 // v0.6.0 (C2): modelMeta emitted in JSON envelope; TTY staleness note.
 import { paginate } from '../lib/paginate.mjs';
 import { mapLimit } from '../lib/pool.mjs';
-import { ENTITY_SPECS } from '../lib/model.mjs';
+import { ENTITY_SPECS, timezoneFromModel, tzLabel } from '../lib/model.mjs';
 import { fmtMoney as money } from '../lib/money.mjs';
 
 export const meta = {
@@ -16,8 +16,8 @@ export const meta = {
   readOnly: true,
 };
 
-const fmtManila = (ms) =>
-  new Date(ms).toLocaleString('en-US', { timeZone: 'Asia/Manila', month: 'short', day: 'numeric' });
+const fmtDate = (ms, tz) =>
+  new Date(ms).toLocaleString('en-US', { timeZone: tz, month: 'short', day: 'numeric' });
 const metric = (label, value, { note = '', blocked = false, blocker = '' } = {}) =>
   ({ label, value, note, blocked, blocker });
 
@@ -279,9 +279,10 @@ export async function run(args, ctx) {
   const DAYS = args.days != null ? args.days : (Number(args._?.[0]) || 7);
   const NOW = ctx.now;
   const START = NOW - DAYS * 24 * 60 * 60 * 1000;
+  const tz = timezoneFromModel(ctx.model);
   ctx.out.card(() => {
     const W = 58;
-    const winLabel = `${fmtManila(START)} – ${fmtManila(NOW)} (last ${DAYS}d, Manila)`;
+    const winLabel = `${fmtDate(START, tz)} – ${fmtDate(NOW, tz)} (last ${DAYS}d, ${tzLabel(tz)})`;
     const line = (l, v) => '│ ' + l.padEnd(16) + ' ' + String(v).padEnd(W - 20) + '│';
     ctx.out.line('┌' + '─'.repeat(W - 2) + '┐');
     ctx.out.line(line('SNAPSHOT', winLabel.slice(0, W - 20)));

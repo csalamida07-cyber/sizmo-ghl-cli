@@ -10,6 +10,7 @@ import { collect as pipeCollect } from './pipeline.mjs';
 import { collect as arCollect } from './receivables.mjs';
 import { rankActions, hasMixedCurrencies } from '../lib/prioritize.mjs';
 import { SYM } from '../lib/money.mjs';
+import { timezoneFromModel } from '../lib/model.mjs';
 import {
   loadLast, recordRun, diff, filterSnoozed,
   snapshotFromMetrics, formatDelta,
@@ -341,7 +342,10 @@ function buildRenderModel(data, sources, ctx) {
     return `${amt} · ${who} · ${kindLabel}${a.age != null ? ` · ${a.age}d` : ''}`;
   });
 
-  return { currency, leaks, headline, moneyLeakLines, footnotes, N, snap, sources };
+  // Render timezone for the "today" caption — the location's own zone, not a hardcoded Manila.
+  const tz = timezoneFromModel(ctx?.model);
+
+  return { currency, leaks, headline, moneyLeakLines, footnotes, N, snap, sources, tz };
 }
 
 // ── format renderers — human only; none touch ctx.out.data() ─────────────────
@@ -349,7 +353,7 @@ function renderPretty(rm, data, DAYS, ctx) {
   const W = 64;
   const bar = (ch = '─') => ch.repeat(W);
   const pad = (s) => { const str = String(s); return str.length >= W ? str.slice(0, W) : str + ' '.repeat(W - str.length); };
-  const today = new Date().toLocaleDateString('en-US', { timeZone: 'Asia/Manila', weekday: 'long', month: 'short', day: 'numeric' });
+  const today = new Date().toLocaleDateString('en-US', { timeZone: rm.tz, weekday: 'long', month: 'short', day: 'numeric' });
 
   ctx.out.line('\n╔' + bar('═') + '╗');
   ctx.out.line('║' + pad('  ' + rm.headline) + '║');
@@ -401,7 +405,7 @@ function renderPretty(rm, data, DAYS, ctx) {
 }
 
 function renderSlack(rm, data, DAYS, ctx) {
-  const today = new Date().toLocaleDateString('en-US', { timeZone: 'Asia/Manila', weekday: 'long', month: 'short', day: 'numeric' });
+  const today = new Date().toLocaleDateString('en-US', { timeZone: rm.tz, weekday: 'long', month: 'short', day: 'numeric' });
   const actions = data.actions || [];
   ctx.out.line(`*${rm.headline}*`);
   ctx.out.line('');
@@ -423,7 +427,7 @@ function renderSlack(rm, data, DAYS, ctx) {
 }
 
 function renderMd(rm, data, DAYS, ctx) {
-  const today = new Date().toLocaleDateString('en-US', { timeZone: 'Asia/Manila', weekday: 'long', month: 'short', day: 'numeric' });
+  const today = new Date().toLocaleDateString('en-US', { timeZone: rm.tz, weekday: 'long', month: 'short', day: 'numeric' });
   const actions = data.actions || [];
   ctx.out.line(`# ${rm.headline}`);
   ctx.out.line('');

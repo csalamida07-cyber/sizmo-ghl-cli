@@ -118,7 +118,7 @@ export async function run(args, ctx) {
     if (!gate.proceed) return gate.code;
 
     // Execute
-    const r = await ctx.http.delete(`/calendars/events/appointments/${apptId}`, {});
+    const r = await ctx.http.delete(`/calendars/events/appointments/${encodeURIComponent(apptId)}`, {});
 
     if (r.code === 401 || r.code === 403) {
       throw new GhlError(

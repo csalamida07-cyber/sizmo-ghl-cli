@@ -5,6 +5,7 @@
 // READ-ONLY. Never messages, invoices, or charges.
 import { paginate } from '../lib/paginate.mjs';
 import { fmtMoney as money } from '../lib/money.mjs';
+import { timezoneFromModel } from '../lib/model.mjs';
 
 export const meta = {
   name: 'booked-not-paid',
@@ -202,8 +203,11 @@ export async function run(args, ctx) {
   const DAYS = args.days ?? 30;
   const TOP = args.top ?? 15;
   const cur = data.currency;
+  // Load the model just for the location timezone (cheap cache read; bnp doesn't otherwise need it).
+  if (ctx.ensureModel && ctx.model === undefined) { try { await ctx.ensureModel(); } catch { /* tz falls back */ } }
+  const tz = timezoneFromModel(ctx.model);
   const fmt = (t) =>
-    new Date(t).toLocaleString('en-US', { timeZone: 'Asia/Manila', month: 'short', day: 'numeric' });
+    new Date(t).toLocaleString('en-US', { timeZone: tz, month: 'short', day: 'numeric' });
 
   ctx.out.card(() => {
     ctx.out.line(`\n  BOOKED-NOT-PAID — last ${DAYS}d · ${data.contactsWithSessions} contact(s) with sessions · loc ${data.location}`);

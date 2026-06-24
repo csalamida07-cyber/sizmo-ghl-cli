@@ -1,6 +1,38 @@
 import { test } from 'node:test'; import assert from 'node:assert';
 import { mkdtempSync, rmSync, writeFileSync, mkdirSync, existsSync } from 'node:fs'; import { tmpdir } from 'node:os'; import { join } from 'node:path';
-import { syncModel, loadModel, isStale, ENTITY_SPECS } from '../../lib/model.mjs';
+import { syncModel, loadModel, isStale, ENTITY_SPECS, timezoneFromModel, tzLabel, DEFAULT_TZ } from '../../lib/model.mjs';
+
+test('timezoneFromModel: location tz wins; missing → Manila fallback; never throws', () => {
+  const ny = { entities: { location: { item: { timezone: 'America/New_York' } } } };
+  assert.equal(timezoneFromModel(ny), 'America/New_York');
+  // business.timezone is the secondary source
+  const biz = { entities: { location: { item: { business: { timezone: 'Europe/London' } } } } };
+  assert.equal(timezoneFromModel(biz), 'Europe/London');
+  // no tz on the location → PH-first fallback (current users unchanged)
+  assert.equal(timezoneFromModel({ entities: { location: { item: {} } } }), DEFAULT_TZ);
+  assert.equal(DEFAULT_TZ, 'Asia/Manila');
+  // no model at all (e.g. unsynced) → fallback, no crash
+  assert.equal(timezoneFromModel(undefined), DEFAULT_TZ);
+  assert.equal(timezoneFromModel(null), DEFAULT_TZ);
+  // explicit fallback override is honored
+  assert.equal(timezoneFromModel(undefined, 'UTC'), 'UTC');
+});
+
+test('timezoneFromModel actually shifts the rendered day (the bug it fixes)', () => {
+  // 02:30 UTC Jun 18 is still Jun 17 in New York — a Manila-hardcoded render showed the wrong day.
+  const t = Date.UTC(2026, 5, 18, 2, 30);
+  const day = (tz) => new Date(t).toLocaleDateString('en-US', { timeZone: tz, day: 'numeric' });
+  assert.equal(day('Asia/Manila'), '18');
+  assert.equal(day('America/New_York'), '17');
+  assert.notEqual(day('Asia/Manila'), day('America/New_York'));
+});
+
+test('tzLabel: trailing city, underscores → spaces', () => {
+  assert.equal(tzLabel('America/New_York'), 'New York');
+  assert.equal(tzLabel('Asia/Manila'), 'Manila');
+  assert.equal(tzLabel(''), '');
+  assert.equal(tzLabel(undefined), '');
+});
 
 test('ENTITY_SPECS defines 6 entities', () => {
   assert.equal(ENTITY_SPECS.length, 6);

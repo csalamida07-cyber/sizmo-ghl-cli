@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **`auth check` no longer reports "all green" while offline.** The shared scope probe treated a
+  transport error (could-not-reach, `code:0`) the same as a real `200` — so on a dropped/flaky
+  connection `auth check` printed "6/6 lanes readable · usable" and exited 0, while `doctor` (which
+  patched around the same probe) correctly said "OFFLINE". The probe now treats `code:0` as
+  unverifiable (not granted) at the source, and `auth check` reports "could not reach GoHighLevel"
+  + exits non-zero when every lane is unreachable. Both commands now agree. (Pass-3 fake-green.)
+- **Dates/times now render in the location's own timezone, not a hardcoded `Asia/Manila`.**
+  `brief`, `snapshot`, `noshow`, and `booked-not-paid` showed every date in Manila time regardless
+  of where the GoHighLevel location actually is — so a US/UK/AU client could see the wrong day in
+  the `brief` header and Manila-shifted appointment times. The timezone now comes from the synced
+  CRM model's location (it was already stored); when no model/timezone is available it still falls
+  back to `Asia/Manila`, so existing PH users are unchanged. (Human output only — no contract change.)
+- CHANGELOG: the 1.0.0 entry said CI runs on "Node 20 + 22" in one line and "22 + 24" in another;
+  the real matrix is 22 + 24.
+
+### Security
+- Completed the URL-encoding hardening started in 0.9.0: `encodeURIComponent` is now applied to
+  every user-supplied id interpolated into a request path — `appointment cancel <apptId>`,
+  `note <contactId>`, `opp move/update <oppId>`, and the `triage` conversation fetch. 0.9.0 had only
+  covered location ids; a malformed/hand-edited id can no longer alter a request's path or query.
+
 ## [1.0.0] — 2026-06-17
 
 First stable release. 1.0 is a **trust + stability commitment**, not new features — the public
@@ -22,7 +44,7 @@ scaffolding that makes the existing CLI dependable.
   let 0.7.0–0.9.0 ship while git was stuck at 0.6.0. No bypass flag.
 - `CONTRIBUTING.md` — documented the release ritual; corrected the stale "never writes" claim
   (confirm-gated operational writes exist since 0.6.0; money still never moves).
-- CI — GitHub Actions (`.github/workflows/ci.yml`): runs `node --test` on Node 20 + 22 on every
+- CI — GitHub Actions (`.github/workflows/ci.yml`): runs `node --test` on Node 22 + 24 on every
   push/PR, plus a generic gitleaks secret scan. CI / npm / zero-deps badges in the README.
 - `API-STABILITY.md` — the frozen public contract for 1.x: exit codes, the two JSON contracts
   (data-command envelope + per-verb router shapes), `schemaVersion` policy, flag/command stability,

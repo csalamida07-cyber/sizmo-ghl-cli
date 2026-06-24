@@ -4,7 +4,7 @@
 // v0.6.0 (C2): modelMeta emitted in JSON envelope; staleness note in TTY.
 // READ-ONLY. Never messages, never books.
 import { mapLimit } from '../lib/pool.mjs';
-import { ENTITY_SPECS } from '../lib/model.mjs';
+import { ENTITY_SPECS, timezoneFromModel } from '../lib/model.mjs';
 export const meta = {
   name: 'noshow',
   summary: 'No-show recovery — who to re-book',
@@ -126,8 +126,9 @@ export async function run(args, ctx) {
     const d = Math.floor((NOW - t) / 86400000);
     return d >= 1 ? d + 'd' : Math.max(1, Math.floor((NOW - t) / 3600000)) + 'h';
   };
+  const tz = timezoneFromModel(ctx.model);
   const fmt = (t) =>
-    new Date(t).toLocaleString('en-US', { timeZone: 'Asia/Manila', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+    new Date(t).toLocaleString('en-US', { timeZone: tz, month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
 
   ctx.out.card(() => {
     ctx.out.line(`\n  NO-SHOW RECOVERY — ${data.noshows} no-show(s) · last ${DAYS}d · ${data.calendars} calendars · loc ${data.location}`);

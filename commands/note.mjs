@@ -33,7 +33,7 @@ export async function run(args, ctx) {
   if (!gate.proceed) return gate.code;
 
   // Execute
-  const r = await ctx.http.post(`/contacts/${contactId}/notes`, { body: text });
+  const r = await ctx.http.post(`/contacts/${encodeURIComponent(contactId)}/notes`, { body: text });
 
   if (r.code === 401 || r.code === 403) {
     throw new GhlError(

@@ -173,7 +173,7 @@ export async function run(args, ctx) {
     if (!gate.proceed) return gate.code;
 
     // Execute
-    const r = await ctx.http.put(`/opportunities/${oppId}`, { stageId: found.stage.id });
+    const r = await ctx.http.put(`/opportunities/${encodeURIComponent(oppId)}`, { stageId: found.stage.id });
 
     if (r.code === 401 || r.code === 403) {
       throw new GhlError(
@@ -224,7 +224,7 @@ export async function run(args, ctx) {
       ...(value  != null ? { monetaryValue: Number(value) } : {}),
       ...(status != null ? { status } : {}),
     };
-    const r = await ctx.http.put(`/opportunities/${oppId}`, body);
+    const r = await ctx.http.put(`/opportunities/${encodeURIComponent(oppId)}`, body);
 
     if (r.code === 401 || r.code === 403) {
       throw new GhlError(

@@ -72,7 +72,7 @@ export async function collect(args, ctx) {
 
   // fetch last inbound snippet for context (top-N only, cheap)
   async function lastInbound(convId) {
-    const r = await ctx.http.get(`/conversations/${convId}/messages`, {
+    const r = await ctx.http.get(`/conversations/${encodeURIComponent(convId)}/messages`, {
       query: { limit: 20 },
       version: '2021-04-15',
     });
