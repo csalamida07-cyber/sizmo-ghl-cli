@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.1] — 2026-06-26
+
 ### Fixed
 - **`auth check` no longer reports "all green" while offline.** The shared scope probe treated a
   transport error (could-not-reach, `code:0`) the same as a real `200` — so on a dropped/flaky
@@ -157,7 +159,8 @@ scaffolding that makes the existing CLI dependable.
 - Private Integration Token (PIT) auth via stdin/env (never argv); multi-profile config.
 - Stable `--json` envelope (`schemaVersion: 1`); `sizmo auth status` / `auth check` / `schema`.
 
-[Unreleased]: https://github.com/csalamida07-cyber/sizmo-ghl-cli/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/csalamida07-cyber/sizmo-ghl-cli/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/csalamida07-cyber/sizmo-ghl-cli/releases/tag/v1.0.1
 [1.0.0]: https://github.com/csalamida07-cyber/sizmo-ghl-cli/releases/tag/v1.0.0
 [0.9.0]: https://github.com/csalamida07-cyber/sizmo-ghl-cli/releases/tag/v0.9.0
 [0.8.0]: https://github.com/csalamida07-cyber/sizmo-ghl-cli/releases/tag/v0.8.0
