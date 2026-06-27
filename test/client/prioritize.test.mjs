@@ -5,6 +5,35 @@ import { test } from 'node:test';
 import assert from 'node:assert';
 import { rankActions } from '../../lib/prioritize.mjs';
 
+test('non-finite money (Infinity) → unknownValue, never ranked #1 nor poisoning the total', () => {
+  const r = rankActions({
+    deals: [
+      { contactId: 'inf', name: 'Bad Data', monetaryValue: Infinity, ageDays: 1 },
+      { contactId: 'real', name: 'Acme', monetaryValue: 5000, ageDays: 2 },
+    ],
+    invoices: [{ contactId: 'invinf', name: 'X', due: Infinity, cur: 'PHP', ageDays: 3 }],
+    neverBilled: [{ contactId: 'nbinf', name: 'Y', estValue: Infinity, ageDays: 4 }],
+  });
+  // the only ranked (money) item is the finite 5000 deal — Infinity never ranks
+  assert.deepEqual(r.ranked.map(x => x.contact), ['real']);
+  assert.ok(r.ranked.every(x => Number.isFinite(x.money)), 'no non-finite money survives into ranked');
+  // the Infinity rows are surfaced honestly as value-unknown
+  const uvContacts = r.unknownValue.map(x => x.contact);
+  assert.ok(['inf', 'invinf', 'nbinf'].every(c => uvContacts.includes(c)), 'non-finite items → unknownValue');
+});
+
+test('equal-money tie-break with NaN/undefined age is deterministic, never drops an item', () => {
+  const r = rankActions({
+    deals: [
+      { contactId: 'a', name: 'A', monetaryValue: 1000, ageDays: undefined },
+      { contactId: 'b', name: 'B', monetaryValue: 1000, ageDays: NaN },
+      { contactId: 'c', name: 'C', monetaryValue: 1000, ageDays: 5 },
+    ],
+  });
+  // all three present (no item lost to a NaN comparator), C (real age) sorts ahead of the two ageless
+  assert.equal(r.ranked.length, 3, 'no item dropped by a NaN comparator');
+  assert.equal(r.ranked[0].contact, 'c', 'the item with a real age sorts first on the tie-break');
+});
 test('known-money ranked by money desc then age; unknown-value separate by age', () => {
   const r = rankActions({
     deals:      [{ contactId:'d1', name:'Big', monetaryValue:50000, ageDays:21 }, { contactId:'d2', name:'Small', monetaryValue:5000, ageDays:40 }],

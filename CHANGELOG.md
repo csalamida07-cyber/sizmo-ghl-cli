@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Ranker hardening (found by an adversarial sweep of the money core): a non-finite money value
+  (e.g. `Infinity` from bad upstream data) no longer ranks #1 or turns the headline total into `—`
+  — it's treated as value-unknown, consistent with how `money.mjs` renders non-finite amounts. The
+  sort tie-break now guards a `NaN`/undefined age so an equal-money tie can never drop an item via a
+  non-deterministic comparator. Both are edge-only — no change to normal output.
+
 ## [1.1.0] — 2026-06-26
 
 First feature minor since 1.0. Additive only — the frozen 1.x contract (exit codes, the `--json`
