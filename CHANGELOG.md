@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Build/scaffold writes** — stand up a GHL location from the terminal instead of clicking:
+  `sizmo contact create`, `sizmo field create` (custom field), `sizmo value create` (custom value).
+  All confirm-gated like the other writes. Design principle: **the PIT scope is the gate** — if the
+  token carries the write scope the command works, otherwise it fails with `AUTH` + the exact scope
+  to add. `init`'s scope copy-block + `auth check` now include `locations/customFields.write` and
+  `locations/customValues.write`.
+  > Endpoints built to the documented LeadConnector v2 shapes + unit-tested with mocked fetch;
+  > pending live verification against a real location before release.
+
 ## [1.2.0] — 2026-06-26
 
 Convenience minor — make sizmo nicer to use day-to-day. Additive only; the frozen 1.x contract is

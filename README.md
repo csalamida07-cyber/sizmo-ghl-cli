@@ -134,6 +134,14 @@ These commands change data in GoHighLevel. Every write requires `--confirm`; wit
 | `sizmo appointment cancel <apptId>` | Cancel an appointment | apptId positional | `calendars.write` |
 | `sizmo send <contactId> --channel sms\|email --message "..."` | Send an SMS or email | `--channel`, `--message` | `conversations/message.write` |
 
+**Build / scaffold writes** — stand up a location from the terminal instead of clicking. The PIT scope is the gate: if your token carries the write scope, the command works; if not, it fails with `AUTH` + the exact scope to add.
+
+| Command | Summary | Scope needed |
+|---------|---------|--------------|
+| `sizmo contact create [--email --phone --name --first --last --tag]` | Create a contact | `contacts.write` |
+| `sizmo field create --name "..." [--type TEXT --model contact]` | Create a custom field | `locations/customFields.write` |
+| `sizmo value create --name "..." --value "..."` | Create a custom value | `locations/customValues.write` |
+
 **How writes work:**
 
 ```sh
