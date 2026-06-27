@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] — 2026-06-27
+
+Builder/scaffold minor — sizmo grows from "see + nudge" into "see + nudge + scaffold." Additive;
+the frozen 1.x contract is unchanged. Ships everything since 1.1.0 (includes the 1.2.0 convenience
+round below).
+
 ### Added
 - **Build/scaffold writes** — stand up a GHL location from the terminal instead of clicking:
   `sizmo contact create`, `sizmo field create` (custom field), `sizmo value create` (custom value).
@@ -14,8 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   token carries the write scope the command works, otherwise it fails with `AUTH` + the exact scope
   to add. `init`'s scope copy-block + `auth check` now include `locations/customFields.write` and
   `locations/customValues.write`.
-  > Endpoints built to the documented LeadConnector v2 shapes + unit-tested with mocked fetch;
-  > pending live verification against a real location before release.
+  > Verified live against a real GoHighLevel location — contact/field/value create all returned ids,
+  > and the confirm-gate previews then fires correctly.
 
 ## [1.2.0] — 2026-06-26
 
@@ -214,7 +220,8 @@ scaffolding that makes the existing CLI dependable.
 - Private Integration Token (PIT) auth via stdin/env (never argv); multi-profile config.
 - Stable `--json` envelope (`schemaVersion: 1`); `sizmo auth status` / `auth check` / `schema`.
 
-[Unreleased]: https://github.com/csalamida07-cyber/sizmo-ghl-cli/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/csalamida07-cyber/sizmo-ghl-cli/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/csalamida07-cyber/sizmo-ghl-cli/releases/tag/v1.3.0
 [1.2.0]: https://github.com/csalamida07-cyber/sizmo-ghl-cli/releases/tag/v1.2.0
 [1.1.0]: https://github.com/csalamida07-cyber/sizmo-ghl-cli/releases/tag/v1.1.0
 [1.0.1]: https://github.com/csalamida07-cyber/sizmo-ghl-cli/releases/tag/v1.0.1
