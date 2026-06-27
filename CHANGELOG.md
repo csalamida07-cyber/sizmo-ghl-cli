@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0] — 2026-06-27
+
+### Added
+- **Single-target delete** — `sizmo contact delete <id>`, `sizmo field delete <id>`,
+  `sizmo value delete <id>`. Deliberately designed against the "I deleted one custom field and it
+  wiped them all" accident: takes **exactly one id** (no `--all`, no wildcard, no batch); **fetches
+  the resource and shows its name** in the confirm preview first; a wrong/nonexistent id →
+  `NOTFOUND` with nothing touched; then deletes that **one** resource by its id path. Confirm-gated
+  like every write. Verified live (deleted a real field/value/contact by id, confirm-gate intact).
+
 ## [1.3.0] — 2026-06-27
 
 Builder/scaffold minor — sizmo grows from "see + nudge" into "see + nudge + scaffold." Additive;
@@ -225,7 +235,8 @@ scaffolding that makes the existing CLI dependable.
 - Private Integration Token (PIT) auth via stdin/env (never argv); multi-profile config.
 - Stable `--json` envelope (`schemaVersion: 1`); `sizmo auth status` / `auth check` / `schema`.
 
-[Unreleased]: https://github.com/csalamida07-cyber/sizmo-ghl-cli/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/csalamida07-cyber/sizmo-ghl-cli/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/csalamida07-cyber/sizmo-ghl-cli/releases/tag/v1.4.0
 [1.3.0]: https://github.com/csalamida07-cyber/sizmo-ghl-cli/releases/tag/v1.3.0
 [1.2.0]: https://github.com/csalamida07-cyber/sizmo-ghl-cli/releases/tag/v1.2.0
 [1.1.0]: https://github.com/csalamida07-cyber/sizmo-ghl-cli/releases/tag/v1.1.0

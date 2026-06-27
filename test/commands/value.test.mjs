@@ -41,3 +41,29 @@ test('value create: 401 → AUTH + customValues.write guidance', async () => {
   await assert.rejects(() => run({ _: ['create'], name: 'X', value: 'y' }, ctx),
     (e) => { assert.equal(e.code, EXIT.AUTH); assert.match(e.message, /customValues\.write/); return true; });
 });
+
+// ── delete (single-target) ─────────────────────────────────────────────────────
+const listFixture = { 'GET /locations/L-TEST/customValues': { status: 200, j: { customValues: [{ id: 'v-1', name: 'Booking Link' }] } } };
+
+test('value delete: no id → USAGE (never bulk)', async () => {
+  const { ctx } = makeFakeCtx({ confirmed: true });
+  await assert.rejects(() => run({ _: ['delete'] }, ctx),
+    (e) => { assert.equal(e.code, EXIT.USAGE); assert.match(e.message, /one id, never bulk/i); return true; });
+});
+
+test('value delete: unknown id → NOTFOUND, no DELETE', async () => {
+  const { ctx, getCalledWrites } = makeFakeCtx({ confirmed: true, fixture: listFixture });
+  await assert.rejects(() => run({ _: ['delete', 'v-NOPE'] }, ctx),
+    (e) => { assert.equal(e.code, EXIT.NOTFOUND); return true; });
+  assert.equal(getCalledWrites().length, 0);
+});
+
+test('value delete: --confirm → one single-resource DELETE, exit 0', async () => {
+  const fixture = { ...listFixture, 'DELETE /locations/L-TEST/customValues/v-1': { status: 200, j: {} } };
+  const { ctx, getPrinted, getCalledWrites } = makeFakeCtx({ confirmed: true, fixture });
+  const code = await run({ _: ['delete', 'v-1'] }, ctx);
+  ctx.out.flush();
+  assert.equal(code, EXIT.OK);
+  assert.deepEqual(getCalledWrites().filter(w => w.startsWith('DELETE')), ['DELETE /locations/L-TEST/customValues/v-1']);
+  assert.equal(JSON.parse(getPrinted()).data.name, 'Booking Link');
+});

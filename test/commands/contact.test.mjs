@@ -53,3 +53,31 @@ test('contact create: no identifying field → USAGE', async () => {
   const { ctx } = makeFakeCtx({ confirmed: true });
   await assert.rejects(() => run({ _: ['create'] }, ctx), /at least one of/i);
 });
+
+// ── delete (single-target) ─────────────────────────────────────────────────────
+test('contact delete: no id → USAGE (never bulk)', async () => {
+  const { ctx } = makeFakeCtx({ confirmed: true });
+  await assert.rejects(() => run({ _: ['delete'] }, ctx),
+    (e) => { assert.equal(e.code, EXIT.USAGE); assert.match(e.message, /one id, never bulk/i); return true; });
+});
+
+test('contact delete: unknown id (404 on GET) → NOTFOUND, no DELETE', async () => {
+  const fixture = { 'GET /contacts/cid-NOPE': { status: 404, j: {} } };
+  const { ctx, getCalledWrites } = makeFakeCtx({ confirmed: true, fixture });
+  await assert.rejects(() => run({ _: ['delete', 'cid-NOPE'] }, ctx),
+    (e) => { assert.equal(e.code, EXIT.NOTFOUND); assert.match(e.message, /nothing deleted/i); return true; });
+  assert.equal(getCalledWrites().length, 0);
+});
+
+test('contact delete: --confirm → names contact then one DELETE, exit 0', async () => {
+  const fixture = {
+    'GET /contacts/cid-1': { status: 200, j: { contact: { id: 'cid-1', firstName: 'Acme', lastName: 'Co' } } },
+    'DELETE /contacts/cid-1': { status: 200, j: { succeeded: true } },
+  };
+  const { ctx, getPrinted, getCalledWrites } = makeFakeCtx({ confirmed: true, fixture });
+  const code = await run({ _: ['delete', 'cid-1'] }, ctx);
+  ctx.out.flush();
+  assert.equal(code, EXIT.OK);
+  assert.deepEqual(getCalledWrites().filter(w => w.startsWith('DELETE')), ['DELETE /contacts/cid-1']);
+  assert.equal(JSON.parse(getPrinted()).data.name, 'Acme Co');
+});

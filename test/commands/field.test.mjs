@@ -41,3 +41,42 @@ test('field create: 403 → AUTH + customFields.write guidance', async () => {
   await assert.rejects(() => run({ _: ['create'], name: 'X' }, ctx),
     (e) => { assert.equal(e.code, EXIT.AUTH); assert.match(e.message, /customFields\.write/); return true; });
 });
+
+// ── delete (single-target, never bulk) ─────────────────────────────────────────
+const LIST = 'GET /locations/L-TEST/customFields';
+const listFixture = { [LIST]: { status: 200, j: { customFields: [{ id: 'f-1', name: 'Lead Source' }] } } };
+
+test('field delete: no id → USAGE (never bulk)', async () => {
+  const { ctx } = makeFakeCtx({ confirmed: true });
+  await assert.rejects(() => run({ _: ['delete'] }, ctx),
+    (e) => { assert.equal(e.code, EXIT.USAGE); assert.match(e.message, /one id, never bulk/i); return true; });
+});
+
+test('field delete: unknown id → NOTFOUND, no DELETE fired', async () => {
+  const { ctx, getCalledWrites } = makeFakeCtx({ confirmed: true, fixture: listFixture });
+  await assert.rejects(() => run({ _: ['delete', 'f-NOPE'] }, ctx),
+    (e) => { assert.equal(e.code, EXIT.NOTFOUND); assert.match(e.message, /nothing deleted/i); return true; });
+  assert.equal(getCalledWrites().length, 0, 'no DELETE for a non-existent id');
+});
+
+test('field delete: no --confirm → CONFIRM (5), names the exact target, no DELETE', async () => {
+  const { ctx, getPrinted, getCalledWrites } = makeFakeCtx({ confirmed: false, fixture: listFixture });
+  const code = await run({ _: ['delete', 'f-1'] }, ctx);
+  ctx.out.flush();
+  assert.equal(code, EXIT.CONFIRM);
+  assert.equal(getCalledWrites().length, 0, 'no DELETE without --confirm');
+  const env = JSON.parse(getPrinted());
+  assert.ok(env.data.changes.some(c => /Delete custom field "Lead Source" \(id f-1\)/.test(c)), 'preview names the exact field');
+  assert.ok(env.data.changes.some(c => /never in bulk/i.test(c)), 'preview states single-target safety');
+});
+
+test('field delete: --confirm → DELETEs exactly that one resource, exit 0', async () => {
+  const fixture = { ...listFixture, 'DELETE /locations/L-TEST/customFields/f-1': { status: 200, j: { succeeded: true } } };
+  const { ctx, getPrinted, getCalledWrites } = makeFakeCtx({ confirmed: true, fixture });
+  const code = await run({ _: ['delete', 'f-1'] }, ctx);
+  ctx.out.flush();
+  assert.equal(code, EXIT.OK);
+  const dels = getCalledWrites().filter(w => w.startsWith('DELETE'));
+  assert.deepEqual(dels, ['DELETE /locations/L-TEST/customFields/f-1'], 'exactly the one single-resource DELETE');
+  assert.equal(JSON.parse(getPrinted()).data.name, 'Lead Source');
+});

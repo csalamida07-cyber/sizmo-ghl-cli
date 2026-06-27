@@ -139,8 +139,17 @@ These commands change data in GoHighLevel. Every write requires `--confirm`; wit
 | Command | Summary | Scope needed |
 |---------|---------|--------------|
 | `sizmo contact create [--email --phone --name --first --last --tag]` | Create a contact | `contacts.write` |
+| `sizmo contact delete <contactId>` | Delete **one** contact by id | `contacts.write` |
 | `sizmo field create --name "..." [--type TEXT --model contact]` | Create a custom field | `locations/customFields.write` |
+| `sizmo field delete <fieldId>` | Delete **one** custom field by id | `locations/customFields.write` |
 | `sizmo value create --name "..." --value "..."` | Create a custom value | `locations/customValues.write` |
+| `sizmo value delete <valueId>` | Delete **one** custom value by id | `locations/customValues.write` |
+
+**Deletion is single-target by design.** `delete` takes exactly **one id** — there is no `--all`, no
+wildcard, no batch. Before it deletes, it **fetches the resource and shows you its name** in the
+confirm preview (a wrong/nonexistent id → `NOTFOUND`, nothing touched), then deletes that one
+resource by its id path. It is structurally incapable of the "I deleted one and it wiped them all"
+accident.
 
 **How writes work:**
 
