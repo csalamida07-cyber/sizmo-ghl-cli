@@ -199,21 +199,23 @@ function entityList(entityName, model, modelMeta, nowMs, specMap, showAll, ctx) 
     ctx.out.line('  ' + '─'.repeat(50));
     if (entityName === 'pipelines') {
       for (const pl of shown) {
-        ctx.out.line(`  ${(pl.name || pl.id).slice(0, 40)}`);
+        ctx.out.line(`  ${(pl.name || pl.id).slice(0, 40)}  ${pl.id || ''}`);
         for (const s of (pl.stages || [])) {
-          ctx.out.line(`    [${String(s.position ?? '').padStart(2)}] ${(s.name || s.id).slice(0, 36)}`);
+          ctx.out.line(`    [${String(s.position ?? '').padStart(2)}] ${(s.name || s.id).slice(0, 32).padEnd(32)} ${s.id || ''}`);
         }
       }
     } else if (entityName === 'users') {
       for (const u of shown) {
         const name = [u.firstName, u.lastName].filter(Boolean).join(' ') || u.name || u.id;
-        ctx.out.line(`  ${name.slice(0, 30).padEnd(30)} ${(u.email || '').slice(0, 36)}`);
+        ctx.out.line(`  ${name.slice(0, 26).padEnd(26)} ${(u.email || '').slice(0, 30).padEnd(30)} ${u.id || ''}`);
       }
     } else {
+      // name + id inline, so `field delete <id>` / `value delete <id>` ids are copy-paste-able.
       for (const item of shown) {
-        const label = item.name || item.id;
+        const label = (item.name || item.id || '').slice(0, 34).padEnd(34);
+        const id = item.id || item._id || '';
         const extra = item.fieldKey ? `  key: ${item.fieldKey}` : (item.calendarType ? `  ${item.calendarType}` : '');
-        ctx.out.line(`  ${label.slice(0, 40)}${extra}`);
+        ctx.out.line(`  ${label}  ${id}${extra}`);
       }
     }
     if (truncated) ctx.out.line(`  … ${items.length - shown.length} more — --all to show all`);

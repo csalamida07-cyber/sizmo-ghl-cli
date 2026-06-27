@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- `sizmo crm <fields|tags|calendars|pipelines|users>` now shows each item's **id inline** in the
+  human listing (it was only in `--json`). Completes the delete loop: `crm fields` → copy the id →
+  `field delete <id>`.
+
 ## [1.4.0] — 2026-06-27
 
 ### Added
