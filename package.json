@@ -1,6 +1,6 @@
 {
   "name": "sizmo",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Unofficial GoHighLevel CLI — read your CRM and make confirm-gated, scope-gated changes from the terminal (build, send, delete — only what your PIT allows). Not affiliated with HighLevel.",
   "type": "module",
   "bin": {
@@ -25,12 +25,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/csalamida07-cyber/sizmo-ghl-cli.git"
+    "url": "git+https://github.com/csalamida/sizmo-ghl-cli.git"
   },
   "bugs": {
-    "url": "https://github.com/csalamida07-cyber/sizmo-ghl-cli/issues"
+    "url": "https://github.com/csalamida/sizmo-ghl-cli/issues"
   },
-  "homepage": "https://github.com/csalamida07-cyber/sizmo-ghl-cli#readme",
+  "homepage": "https://github.com/csalamida/sizmo-ghl-cli#readme",
   "files": [
     "bin/",
     "lib/",

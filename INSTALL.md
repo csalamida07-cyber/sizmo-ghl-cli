@@ -10,7 +10,7 @@
 ## Step 1 — clone and link
 
 ```sh
-git clone https://github.com/csalamida07-cyber/sizmo-ghl-cli
+git clone https://github.com/csalamida/sizmo-ghl-cli
 cd sizmo-ghl-cli
 bash install.sh
 ```

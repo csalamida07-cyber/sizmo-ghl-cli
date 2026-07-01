@@ -1,6 +1,6 @@
 # sizmo
 
-[![CI](https://github.com/csalamida07-cyber/sizmo-ghl-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/csalamida07-cyber/sizmo-ghl-cli/actions/workflows/ci.yml)
+[![CI](https://github.com/csalamida/sizmo-ghl-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/csalamida/sizmo-ghl-cli/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/sizmo)](https://www.npmjs.com/package/sizmo)
 [![zero deps](https://img.shields.io/badge/dependencies-0-brightgreen)](package.json)
 
@@ -51,7 +51,7 @@ sizmo brief
 **Option B — clone + install (puts `sizmo` on your PATH from source):**
 
 ```sh
-git clone https://github.com/csalamida07-cyber/sizmo-ghl-cli
+git clone https://github.com/csalamida/sizmo-ghl-cli
 cd sizmo-ghl-cli
 bash install.sh
 ```
@@ -61,7 +61,7 @@ bash install.sh
 **Option C — clone + run directly:**
 
 ```sh
-git clone https://github.com/csalamida07-cyber/sizmo-ghl-cli && cd sizmo-ghl-cli
+git clone https://github.com/csalamida/sizmo-ghl-cli && cd sizmo-ghl-cli
 node bin/sizmo.mjs brief
 ```
 
@@ -370,4 +370,4 @@ MIT. See LICENSE.
 
 ---
 
-Built by [Sizmo](https://github.com/csalamida07-cyber/sizmo-ghl-cli) — GHL CRM systems & automation. Unofficial; not affiliated with HighLevel.
+Built by [Sizmo](https://github.com/csalamida/sizmo-ghl-cli) — GHL CRM systems & automation. Unofficial; not affiliated with HighLevel.

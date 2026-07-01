@@ -68,7 +68,7 @@ That's the entire boundary. The tool stores nothing in the cloud and runs nowher
 ## Audit it yourself
 
 ```sh
-git clone https://github.com/csalamida07-cyber/sizmo-ghl-cli && cd sizmo-ghl-cli
+git clone https://github.com/csalamida/sizmo-ghl-cli && cd sizmo-ghl-cli
 cat package.json            # zero dependencies
 ls lib/                     # the whole surface
 node --test                 # the test suite
